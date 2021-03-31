@@ -17,16 +17,23 @@
 /**
  * @package auth_oidc
  * @author James McQuillan <james.mcquillan@remote-learner.net>
+ * @author Lai Wei <lai.wei@enovation.ie>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @copyright (C) 2014 onwards Microsoft, Inc. (http://microsoft.com/)
  */
 
 namespace auth_oidc\loginflow;
 
+use local_o365\utils;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/auth/oidc/lib.php');
+
 /**
  * Login flow for the oauth2 authorization code grant.
  */
-class authcode extends \auth_oidc\loginflow\base {
+class authcode extends base {
     /**
      * Returns a list of potential IdPs that this authentication plugin supports. Used to provide links on the login page.
      *
@@ -370,13 +377,14 @@ class authcode extends \auth_oidc\loginflow\base {
      */
     protected function check_for_matched($aadupn) {
         global $DB;
-        $dbman = $DB->get_manager();
-        if ($dbman->table_exists('local_o365_connections')) {
+
+        if (auth_oidc_is_local_365_installed()) {
             $match = $DB->get_record('local_o365_connections', ['aadupn' => $aadupn]);
-            if (!empty($match) && \local_o365\utils::is_o365_connected($match->muserid) !== true) {
+            if (!empty($match) && utils::is_o365_connected($match->muserid) !== true) {
                 return $DB->get_record('user', ['id' => $match->muserid]);
             }
         }
+
         return false;
     }
 
